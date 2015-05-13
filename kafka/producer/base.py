@@ -101,7 +101,7 @@ class Producer(object):
         batch_send: If True, messages are send in batches
         batch_send_every_n: If set, messages are send in batches of this size
         batch_send_every_t: If set, messages are send after this timeout
-        maxsize: sets the upper-bound limit on the number of items that can be placed in the queue
+        async_queue_maxsize: sets the upper-bound limit on the number of items that can be placed in the queue
     """
 
     ACK_NOT_REQUIRED = 0            # No ack is required
@@ -117,13 +117,13 @@ class Producer(object):
                  batch_send=False,
                  batch_send_every_n=BATCH_SEND_MSG_COUNT,
                  batch_send_every_t=BATCH_SEND_DEFAULT_INTERVAL,
-                 maxsize=None):
+                 async_queue_maxsize=None):
 
         if batch_send:
             async = True
             assert batch_send_every_n > 0
             assert batch_send_every_t > 0
-            assert maxsize >= 0
+            assert async_queue_maxsize >= 0
         else:
             batch_send_every_n = 1
             batch_send_every_t = 3600
@@ -134,8 +134,8 @@ class Producer(object):
         self.ack_timeout = ack_timeout
         self.stopped = False
 
-        if maxsize is None:
-            maxsize = ASYNC_QUEUE_MAXSIZE
+        if async_queue_maxsize is None:
+            async_queue_maxsize = ASYNC_QUEUE_MAXSIZE
 
         if codec is None:
             codec = CODEC_NONE
@@ -148,7 +148,7 @@ class Producer(object):
             log.warning("async producer does not guarantee message delivery!")
             log.warning("Current implementation does not retry Failed messages")
             log.warning("Use at your own risk! (or help improve with a PR!)")
-            self.queue = Queue(maxsize)  # Messages are sent through this queue
+            self.queue = Queue(async_queue_maxsize)  # Messages are sent through this queue
             self.thread_stop_event = Event()
             self.thread = Thread(target=_send_upstream,
                                  args=(self.queue,

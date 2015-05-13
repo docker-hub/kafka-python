@@ -48,7 +48,7 @@ class TestKafkaProducer(unittest.TestCase):
     @patch('kafka.producer.base._send_upstream')
     def test_producer_async_queue_overfilled_batch_send(self, mock):
         queue_size = 2
-        producer = Producer(MagicMock(), batch_send=True, maxsize=queue_size)
+        producer = Producer(MagicMock(), batch_send=True, async_queue_maxsize=queue_size)
 
         topic = b'test-topic'
         partition = 0
@@ -64,7 +64,7 @@ class TestKafkaProducer(unittest.TestCase):
     @patch('kafka.producer.base._send_upstream')
     def test_producer_async_queue_overfilled(self, mock):
         queue_size = 2
-        producer = Producer(MagicMock(), async=True, maxsize=queue_size)
+        producer = Producer(MagicMock(), async=True, async_queue_maxsize=queue_size)
 
         topic = b'test-topic'
         partition = 0
@@ -79,7 +79,7 @@ class TestKafkaProducer(unittest.TestCase):
 
     def test_producer_async_queue_normal(self):
         queue_size = 4
-        producer = Producer(MagicMock(), async=True, maxsize=queue_size)
+        producer = Producer(MagicMock(), async=True, async_queue_maxsize=queue_size)
 
         topic = b'test-topic'
         partition = 0
