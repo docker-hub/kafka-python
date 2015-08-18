@@ -43,6 +43,7 @@ ASYNC_STOP_TIMEOUT_SECS = 30
 
 SYNC_FAIL_ON_ERROR_DEFAULT = True
 
+num_messages_sent = {}
 
 def _send_upstream(queue, client, codec, batch_time, batch_size,
                    req_acks, ack_timeout, retry_options, stop_event,
@@ -385,10 +386,18 @@ class Producer(object):
             messages = create_message_set([(m, key) for m in msg], self.codec, key)
             req = ProduceRequest(topic, partition, messages)
             try:
+                #import pydevd; pydevd.settrace('localhost', port=7601, stdoutToServer=True, stderrToServer=True)
+
                 resp = self.client.send_produce_request(
                     [req], acks=self.req_acks, timeout=self.ack_timeout,
                     fail_on_error=self.sync_fail_on_error
                 )
+                global num_messages_sent
+                if topic not in num_messages_sent:
+                    num_messages_sent[topic] = 0
+                num_messages_sent[topic] += len(req[2])
+                if num_messages_sent[topic] % 100 == 0:
+                    log.info("Current state of sent messages: [{0}]".format(num_messages_sent))
             except Exception:
                 log.exception("Unable to send messages")
                 raise
